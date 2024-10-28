@@ -324,6 +324,8 @@ class AndroidWebViewController extends PlatformWebViewController {
   final Map<String, AndroidJavaScriptChannelParams> _javaScriptChannelParams =
       <String, AndroidJavaScriptChannelParams>{};
 
+  bool? _displayWithHybridComposition;
+
   AndroidNavigationDelegate? _currentNavigationDelegate;
 
   Future<List<String>> Function(FileSelectorParams)?
@@ -371,6 +373,8 @@ class AndroidWebViewController extends PlatformWebViewController {
   int get webViewIdentifier =>
       // ignore: invalid_use_of_visible_for_testing_member
       android_webview.WebView.api.instanceManager.getIdentifier(_webView)!;
+
+  bool? get displayWithHybridComposition => _displayWithHybridComposition;
 
   @override
   Future<void> loadFile(
@@ -580,6 +584,11 @@ class AndroidWebViewController extends PlatformWebViewController {
   /// Sets the restrictions that apply on automatic media playback.
   Future<void> setMediaPlaybackRequiresUserGesture(bool require) {
     return _webView.settings.setMediaPlaybackRequiresUserGesture(require);
+  }
+
+  /// Sets the flutter hybrid composition.
+  Future<void> setHybridComposition(bool enabled) async {
+    _displayWithHybridComposition = enabled;
   }
 
   /// Sets the text zoom of the page in percent.
@@ -910,12 +919,15 @@ class AndroidWebViewWidgetCreationParams
     required super.controller,
     super.layoutDirection,
     super.gestureRecognizers,
-    this.displayWithHybridComposition = false,
+    required bool displayWithHybridComposition,
     @visibleForTesting InstanceManager? instanceManager,
     @visibleForTesting
     this.platformViewsServiceProxy = const PlatformViewsServiceProxy(),
-  }) : instanceManager =
-            instanceManager ?? android_webview.JavaObject.globalInstanceManager;
+  })  : instanceManager =
+            instanceManager ?? android_webview.JavaObject.globalInstanceManager,
+        displayWithHybridComposition = (controller as AndroidWebViewController)
+                .displayWithHybridComposition ??
+            false;
 
   /// Constructs a [WebKitWebViewWidgetCreationParams] using a
   /// [PlatformWebViewWidgetCreationParams].
